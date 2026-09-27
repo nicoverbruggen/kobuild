@@ -12,6 +12,10 @@ COPY --from=nickel /tc/arm-nickel-linux-gnueabihf/arm-nickel-linux-gnueabihf /tc
 COPY --from=nickel /lib/x86_64-linux-gnu /tc/qt5-host/lib/x86_64-linux-gnu
 COPY --from=nickel /lib64 /tc/qt5-host/lib64
 COPY --from=nickel /usr/lib/x86_64-linux-gnu/libstdc++.so.6* /tc/qt5-host/usr/lib/x86_64-linux-gnu/
+# Preserve Debian notices for the libraries copied out of NickelTC.
+COPY --from=nickel /usr/share/doc /usr/share/doc/kobuild/nickeltc-packages
+COPY --from=nickel /usr/share/common-licenses /usr/share/doc/kobuild/nickeltc-common-licenses
+COPY --from=nickel /var/lib/dpkg/status /usr/share/doc/kobuild/nickeltc-package-status
 COPY qt5/toolchain.cmake qt5/wrappers.py qt5/cxx-compat.h /tc/qt5/
 RUN python3 /tc/qt5/wrappers.py
 ENV PATH=/tc/qt5/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \

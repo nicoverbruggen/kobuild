@@ -69,6 +69,11 @@ RUN python3 /tc/source/prepare.py /tc/src/qtbase
 
 COPY qt6/wrappers.sh qt6/kobo.cmake qt6/build-qt.sh /tc/src/
 COPY qt6/mkspecs /tc/src/mkspecs
+COPY LICENSE /tc/src/LICENSE.kobuild
+# Keep the exact prepared Qt source, notices and build scripts with the SDK.
+# Archive before configuration so generated build trees are not included.
+RUN XZ_OPT="-T2 -1" tar -C /tc -cJf /tc/qt6-source.tar.xz source \
+    src/qtbase src/wrappers.sh src/kobo.cmake src/build-qt.sh src/mkspecs src/LICENSE.kobuild
 # Compiler wrappers select ARMv7 Thumb, NEON and hard-float calling conventions.
 # The pkg-config wrapper searches target library metadata instead of host Qt.
 RUN /tc/src/wrappers.sh /tc/arm-kobo-linux-gnueabihf
@@ -80,14 +85,15 @@ RUN /tc/src/wrappers.sh /tc/arm-kobo-linux-gnueabihf
 # not executed during this stage.
 RUN JOBS="$JOBS" /tc/src/build-qt.sh /tc/arm-kobo-linux-gnueabihf /tc/src
 
-# Keep the installed SDK and cross-library packages, leaving Qt build trees
-# and unpacked sources in the build stage. This is a development image, not a
+# Keep the installed SDK, Qt source archive and cross-library packages.
+# Generated Qt build trees stay in the build stage. This is a development image, not a
 # device filesystem or a complete corresponding-source distribution.
 FROM base AS toolchain
 # qemu-arm lets applications run ARM tests against this Qt inside the SDK.
 # It is installed here so that adding it does not rebuild Qt.
 RUN apt-get update && apt-get install -y --no-install-recommends qemu-user && rm -rf /var/lib/apt/lists/*
 COPY --from=build /tc/arm-kobo-linux-gnueabihf /tc/arm-kobo-linux-gnueabihf
+COPY --from=build /tc/qt6-source.tar.xz /usr/src/kobuild/qt6-source.tar.xz
 COPY qt6/check.sh /tc/arm-kobo-linux-gnueabihf/check.sh
 # CMake 3.21 and later read CMAKE_TOOLCHAIN_FILE from the environment, so a
 # plain cmake call cross-compiles here.
@@ -101,6 +107,7 @@ ENV PATH=/tc/arm-kobo-linux-gnueabihf/bin:/usr/local/sbin:/usr/local/bin:/usr/sb
 # in Nickel or establish compatibility with untested firmware versions.
 RUN /tc/arm-kobo-linux-gnueabihf/check.sh && rm -rf /tmp/*
 COPY LICENSE NOTICE /usr/share/doc/kobuild/
+COPY qt6/source/NOTICE /usr/share/doc/kobuild/qt6-patches-NOTICE
 COPY qt6/source/LICENSES /usr/share/doc/kobuild/qt-licenses
 COPY tools/check-sdk.py /usr/local/bin/kobuild-check
 ENV KOBUILD_TARGET=qt6

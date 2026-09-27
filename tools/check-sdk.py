@@ -5,6 +5,32 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import tarfile
+
+
+def check_distribution_files(target):
+    docs = Path('/usr/share/doc/kobuild')
+    required = [docs / 'LICENSE', docs / 'NOTICE', docs / 'qt-licenses/LGPL-3.0-only.txt']
+    if target == 'qt5':
+        required += [docs / 'nickeltc-packages/libc6/copyright',
+                     docs / 'nickeltc-packages/libstdc++6/copyright',
+                     docs / 'nickeltc-common-licenses/GPL-3', docs / 'nickeltc-package-status']
+    else:
+        required.append(docs / 'qt6-patches-NOTICE')
+        with tarfile.open('/usr/src/kobuild/qt6-source.tar.xz') as archive:
+            names = set(archive.getnames())
+            expected = {'source/source.json', 'source/NOTICE',
+                        'source/0001-kobo-qtbase.patch', 'source/0002-kobo-sqlite.patch',
+                        'src/qtbase/CMakeLists.txt', 'src/qtbase/LICENSES/LGPL-3.0-only.txt',
+                        'src/qtbase/src/3rdparty/sqlite/sqlite3.c',
+                        'src/build-qt.sh', 'src/wrappers.sh', 'src/kobo.cmake',
+                        'src/mkspecs/linux-arm-kobo-gnueabihf-g++/qmake.conf', 'src/LICENSE.kobuild'}
+            missing = expected - names
+            if missing:
+                raise RuntimeError('Incomplete Qt source archive: ' + ', '.join(sorted(missing)))
+    for path in required:
+        if not path.is_file() or not path.stat().st_size:
+            raise RuntimeError('Missing distribution notice: ' + str(path))
 
 
 def main():
@@ -58,7 +84,8 @@ endif()
         dependencies = subprocess.check_output(['arm-linux-gnueabihf-readelf', '-d', str(binary)], text=True)
         if f'libQt{major}Widgets.so.{major}' not in dependencies:
             raise RuntimeError('Expected the selected Qt Widgets library')
-    print('Qt code generation, private headers and ARM hard-float link check passed')
+    check_distribution_files(args.target)
+    print('Qt code generation, private headers, ARM hard-float link and distribution file checks passed')
 
 
 if __name__ == '__main__':

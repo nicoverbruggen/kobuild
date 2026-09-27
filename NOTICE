@@ -1,17 +1,27 @@
 kobuild recipes and scripts use the MIT license in LICENSE.
 
-The SDK images include third-party software under its own licenses.
+The SDK images include third-party software under its own licenses. The MIT
+license does not replace the terms of Qt, its patches, or other dependencies.
 
 Qt5 uses the pinned NickelTC image in qt5/Dockerfile. Its upstream recipes,
 patches and source references are available at https://github.com/pgaskin/NickelTC.
+The exact source revisions of all components in that binary image have not been
+verified. The image digest identifies binaries, not a complete source archive.
+Debian package notices and package status from NickelTC are retained under
+/usr/share/doc/kobuild/nickeltc-packages, nickeltc-common-licenses and
+nickeltc-package-status. This metadata covers the upstream image's packages;
+it is not an inventory of only the files copied into this SDK.
 
 Qt6 builds the official archive recorded in qt6/source/source.json with the
-included patches. Copyright and license notices for those patches are in
-qt6/source/NOTICE and qt6/source/LICENSES. These terms are not replaced by MIT.
+included patches. The prepared Qt source, patch inputs, license notices and
+build scripts are bundled in /usr/src/kobuild/qt6-source.tar.xz. The source
+archive includes third-party code bundled in Qt under its original terms.
+Qt patch notices are also available at
+/usr/share/doc/kobuild/qt6-patches-NOTICE.
 
 Qt license texts are included in /usr/share/doc/kobuild/qt-licenses inside both
-images. Ubuntu package notices remain in /usr/share/doc. The repository records
-SDK build inputs; it is not a complete source archive for every inherited
-system package or compiler component.
+images. Ubuntu package notices remain in /usr/share/doc. The Qt6 source archive
+does not contain the sources for Ubuntu packages or the cross compiler. This
+repository is not a complete corresponding-source archive for the whole image.
 
 Application-specific dependencies and patches are not included.

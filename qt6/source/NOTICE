@@ -19,7 +19,7 @@ LicenseRef-Qt-Commercial.txt records the commercial alternative; including it
 does not grant a commercial license. Qt-GPL-exception-1.0.txt concerns Qt tools
 in the full source tree, not the older LGPL exception in the Kobo headers.
 
-The inventory below covers all 88 paths touched by the two patches. It records
+The inventory below covers all 80 paths touched by the two patches. It records
 source declarations rather than assigning new licenses to unmarked files.
 It is not a license inventory for every dependency in a built image or SDK.
 
