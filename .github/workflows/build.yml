@@ -1,0 +1,117 @@
+name: Build containers
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: containers-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        target: [qt5, qt6]
+        host:
+          - {arch: amd64, runner: ubuntu-latest}
+          - {arch: arm64, runner: ubuntu-24.04-arm}
+    runs-on: ${{ matrix.host.runner }}
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: '[[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9][a-zA-Z0-9.-]*)?$ ]]'
+      - uses: docker/setup-buildx-action@v4
+      - name: Build SDK
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.target }}/Dockerfile
+          platforms: linux/${{ matrix.host.arch }}
+          load: true
+          tags: localhost/kobuild:${{ matrix.target }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: JOBS=2
+          cache-from: type=gha,scope=sdk-${{ matrix.target }}-${{ matrix.host.arch }}
+          cache-to: type=gha,mode=max,scope=sdk-${{ matrix.target }}-${{ matrix.host.arch }}
+      - name: Check SDK
+        env:
+          TARGET: ${{ matrix.target }}
+        run: docker run --rm --network none "localhost/kobuild:$TARGET" python3 /usr/local/bin/kobuild-check
+      - name: Log in to GHCR
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish host images
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TARGET: ${{ matrix.target }}
+          ARCH: ${{ matrix.host.arch }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          mkdir -p digests
+          remote="$image:$TARGET-$GITHUB_SHA-$ARCH"
+          docker tag "localhost/kobuild:$TARGET" "$remote"
+          docker push "$remote"
+          docker image inspect "$remote" --format '{{json .RepoDigests}}' |
+            jq -er --arg prefix "$image@" '.[] | select(startswith($prefix))' > "digests/$TARGET-$ARCH.txt"
+      - uses: actions/upload-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: digests-${{ matrix.target }}-${{ matrix.host.arch }}
+          path: digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: digests-*
+          path: digests
+          merge-multiple: true
+      - name: Publish multi-architecture tags
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          for target in qt5 qt6; do
+            tags=(--tag "$image:$target-$RELEASE_TAG")
+            if [[ "$RELEASE_TAG" != *-* ]]; then tags+=(--tag "$image:$target"); fi
+            refs=()
+            for arch in amd64 arm64; do refs+=("$(cat "digests/$target-$arch.txt")"); done
+            docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+          done

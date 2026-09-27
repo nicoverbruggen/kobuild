@@ -1,0 +1,17 @@
+kobuild recipes and scripts use the MIT license in LICENSE.
+
+The SDK images include third-party software under its own licenses.
+
+Qt5 uses the pinned NickelTC image in qt5/Dockerfile. Its upstream recipes,
+patches and source references are available at https://github.com/pgaskin/NickelTC.
+
+Qt6 builds the official archive recorded in qt6/source/source.json with the
+included patches. Copyright and license notices for those patches are in
+qt6/source/NOTICE and qt6/source/LICENSES. These terms are not replaced by MIT.
+
+Qt license texts are included in /usr/share/doc/kobuild/qt-licenses inside both
+images. Ubuntu package notices remain in /usr/share/doc. The repository records
+SDK build inputs; it is not a complete source archive for every inherited
+system package or compiler component.
+
+Application-specific dependencies and patches are not included.
