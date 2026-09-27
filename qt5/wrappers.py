@@ -17,7 +17,11 @@ for name in ('gcc', 'g++'):
 for name in ('moc', 'rcc', 'uic'):
     tool = root / 'sysroot/usr/bin' / name
     tool.rename(tool.with_suffix('.x86_64'))
-    tool.write_text('#!/bin/sh\nexec qemu-x86_64 -L /tc/qt5-host ' + str(tool.with_suffix('.x86_64')) + ' "$@"\n')
+    # Select both the loader and its libraries. QEMU's -L alone can fall back
+    # to Ubuntu's newer libstdc++ on AMD64 and mix incompatible runtimes.
+    tool.write_text('#!/bin/sh\nexec qemu-x86_64 /tc/qt5-host/lib64/ld-linux-x86-64.so.2'
+                    + ' --inhibit-cache --library-path /tc/qt5-host/lib/x86_64-linux-gnu:/tc/qt5-host/usr/lib/x86_64-linux-gnu '
+                    + str(tool.with_suffix('.x86_64')) + ' "$@"\n')
     tool.chmod(0o755)
 for metadata in (root / 'sysroot/usr/lib/pkgconfig').glob('*.pc'):
     metadata.write_text(metadata.read_text().replace('prefix=/usr\n', 'prefix=/tc/qt5/sysroot/usr\n'))
