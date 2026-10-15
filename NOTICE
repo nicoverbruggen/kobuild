@@ -19,7 +19,22 @@ archive includes third-party code bundled in Qt under its original terms.
 Qt patch notices are also available at
 /usr/share/doc/kobuild/qt6-patches-NOTICE.
 
-Qt license texts are included in /usr/share/doc/kobuild/qt-licenses inside both
+Android uses the official Qt binary kits and matching Qt Base and Qt Sensors
+source archives recorded with SHA-256 checksums in android/manifest.json.
+The source archives are included in /usr/src/kobuild/android. The Qt host kit
+also includes ICU 73.2 from Qt's binary archive. Its upstream license from
+https://github.com/unicode-org/icu/blob/release-73-2/icu4c/LICENSE is retained as
+/usr/share/doc/kobuild/icu-LICENSE.txt.
+Qt's installer archive filenames identify the machine that built the Android
+libraries; those libraries target Android ARM64, not macOS.
+
+Android SDK, NDK and command-line tools retain their own licenses and notices
+under /opt/android-sdk. See https://developer.android.com/studio#terms-and-conditions
+for the SDK terms. Building the Android image accepts the SDK package licenses.
+The image includes JDK 21 from Ubuntu under its package terms. Application
+signing keys are not included.
+
+Qt license texts are included in /usr/share/doc/kobuild/qt-licenses inside all
 images. Ubuntu package notices remain in /usr/share/doc. The Qt6 source archive
 does not contain the sources for Ubuntu packages or the cross compiler. This
 repository is not a complete corresponding-source archive for the whole image.

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Compile and link an ARM Qt client without running device code."""
+"""Compile and link a Qt client without running device code."""
 import argparse
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import tarfile
 
@@ -35,10 +36,16 @@ def check_distribution_files(target):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--target', choices=['qt5', 'qt6'], default=os.environ.get('KOBUILD_TARGET'))
+    parser.add_argument('--target', choices=['qt5', 'qt6', 'android'], default=os.environ.get('KOBUILD_TARGET'))
+    parser.add_argument('--apk', action='store_true', help='also package an Android APK; requires network access')
     args = parser.parse_args()
-    if args.target not in ('qt5', 'qt6'):
-        parser.error('Set --target or KOBUILD_TARGET to qt5 or qt6')
+    if args.target not in ('qt5', 'qt6', 'android'):
+        parser.error('Set --target or KOBUILD_TARGET to qt5, qt6 or android')
+    if args.target == 'android':
+        subprocess.run([sys.executable, '/usr/local/lib/kobuild/check-android.py', *(['--apk'] if args.apk else [])], check=True)
+        return
+    if args.apk:
+        parser.error('--apk requires the Android target')
     major = args.target[-1]
     with tempfile.TemporaryDirectory(prefix='kobuild-check-') as directory:
         work = Path(directory)
