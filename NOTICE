@@ -18,6 +18,9 @@ build scripts are bundled in /usr/src/kobuild/qt6-source.tar.xz. The source
 archive includes third-party code bundled in Qt under its original terms.
 Qt patch notices are also available at
 /usr/share/doc/kobuild/qt6-patches-NOTICE.
+Qt Sensors uses the official archive pinned in qt6/sensors.json. Its source,
+license texts, checksum manifest and build script are bundled separately in
+/usr/src/kobuild/qt6-sensors-source.tar.xz.
 
 Android uses the official Qt binary kits and matching Qt Base and Qt Sensors
 source archives recorded with SHA-256 checksums in android/manifest.json.

@@ -43,25 +43,30 @@ cat > "$work/cmake/CMakeLists.txt" <<'EOF'
 cmake_minimum_required(VERSION 3.16)
 project(check LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 6.5.2 EXACT REQUIRED COMPONENTS Core Gui Widgets Sensors)
 add_library(checkplugin MODULE plugin.cpp)
-target_link_libraries(checkplugin PRIVATE Qt6::Widgets Qt6::GuiPrivate)
+target_link_libraries(checkplugin PRIVATE Qt6::Widgets Qt6::GuiPrivate Qt6::Sensors)
 EOF
 cat > "$work/cmake/plugin.cpp" <<'EOF'
 #include <QtGui/qpa/qplatformintegrationplugin.h>
 #include <QtWidgets/QWidget>
+#include <QtSensors/QOrientationSensor>
 class CheckPlugin : public QPlatformIntegrationPlugin {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID QPlatformIntegrationFactoryInterface_iid)
 public:
     // Widgets stays in NEEDED only when something uses it; the linker
     // drops unused libraries by default.
-    QPlatformIntegration *create(const QString &, const QStringList &) override { return QWidget::mouseGrabber() ? nullptr : nullptr; }
+    QPlatformIntegration *create(const QString &, const QStringList &) override {
+        QOrientationSensor sensor;
+        return QWidget::mouseGrabber() && sensor.reading() ? nullptr : nullptr;
+    }
 };
 #include "plugin.moc"
 EOF
 cmake -S "$work/cmake" -B "$work/cmake/build" -G Ninja >/dev/null
 cmake --build "$work/cmake/build" >/dev/null
 arm-kobo-linux-gnueabihf-readelf -d "$work/cmake/build/libcheckplugin.so" | grep -q 'libQt6Widgets.so.6'
+arm-kobo-linux-gnueabihf-readelf -d "$work/cmake/build/libcheckplugin.so" | grep -q 'libQt6Sensors.so.6'
 file "$work/cmake/build/libcheckplugin.so" | grep -q 'ARM, EABI5'
 echo "toolchain ok"

@@ -29,6 +29,13 @@ def check_distribution_files(target):
             missing = expected - names
             if missing:
                 raise RuntimeError('Incomplete Qt source archive: ' + ', '.join(sorted(missing)))
+        with tarfile.open('/usr/src/kobuild/qt6-sensors-source.tar.xz') as archive:
+            names = set(archive.getnames())
+            expected = {'sensors.json', 'build-sensors.sh',
+                        'qtsensors-everywhere-src-6.5.2/CMakeLists.txt',
+                        'qtsensors-everywhere-src-6.5.2/LICENSES/LGPL-3.0-only.txt'}
+            if expected - names:
+                raise RuntimeError('Incomplete Qt Sensors source archive')
     for path in required:
         if not path.is_file() or not path.stat().st_size:
             raise RuntimeError('Missing distribution notice: ' + str(path))
@@ -51,6 +58,7 @@ def main():
         work = Path(directory)
         (work / 'main.cpp').write_text('''#include <QApplication>
 #include <QWidget>
+#include <QtSensors/QOrientationSensor>
 #include <QtGui/qpa/qplatformintegration.h>
 class CheckWidget : public QWidget {
     Q_OBJECT
@@ -60,7 +68,8 @@ public:
 int main(int argc, char **argv) {
     QApplication app(argc, argv);
     CheckWidget widget;
-    return widget.width();
+    QOrientationSensor sensor;
+    return widget.width() + (sensor.reading() ? 1 : 0);
 }
 #include "main.moc"
 ''')
@@ -69,9 +78,9 @@ project(kobuild_check LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_AUTOMOC ON)
-find_package(Qt@MAJOR@ REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt@MAJOR@ REQUIRED COMPONENTS Core Gui Widgets Sensors)
 add_executable(check main.cpp)
-target_link_libraries(check PRIVATE Qt@MAJOR@::Widgets)
+target_link_libraries(check PRIVATE Qt@MAJOR@::Widgets Qt@MAJOR@::Sensors)
 if(TARGET Qt@MAJOR@::GuiPrivate)
     target_link_libraries(check PRIVATE Qt@MAJOR@::GuiPrivate)
 else()
@@ -91,6 +100,8 @@ endif()
         dependencies = subprocess.check_output(['arm-linux-gnueabihf-readelf', '-d', str(binary)], text=True)
         if f'libQt{major}Widgets.so.{major}' not in dependencies:
             raise RuntimeError('Expected the selected Qt Widgets library')
+        if f'libQt{major}Sensors.so.{major}' not in dependencies:
+            raise RuntimeError('Expected the selected Qt Sensors library')
     check_distribution_files(args.target)
     print('Qt code generation, private headers, ARM hard-float link and distribution file checks passed')
 

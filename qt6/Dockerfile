@@ -13,8 +13,8 @@
 # Qt starts from the official 6.5.2 archive pinned in source.json. Local
 # patches reproduce Kobo's Qt and SQLite changes. The build keeps the firmware
 # system libraries and OpenGL ES 2 configuration because those features affect
-# private Qt class layouts. Only qtbase is built here; applications build
-# additional Qt modules separately.
+# private Qt class layouts. Qt Sensors is built against the installed SDK.
+# Applications consume these modules without compiling Qt themselves.
 #
 # Layout of the result, under /tc/arm-kobo-linux-gnueabihf:
 #   bin/arm-kobo-linux-gnueabihf-*  compiler and binutils; gcc and g++ carry
@@ -85,6 +85,12 @@ RUN /tc/src/wrappers.sh /tc/arm-kobo-linux-gnueabihf
 # not executed during this stage.
 RUN JOBS="$JOBS" /tc/src/build-qt.sh /tc/arm-kobo-linux-gnueabihf /tc/src
 
+# Keep module changes after Qt Base so they reuse its cached build layer.
+FROM build AS modules
+COPY qt6/sensors.json /tc/source/sensors.json
+COPY qt6/build-sensors.sh /tc/src/build-sensors.sh
+RUN JOBS="$JOBS" bash /tc/src/build-sensors.sh /tc/arm-kobo-linux-gnueabihf /tc/source/sensors.json
+
 # Keep the installed SDK, Qt source archive and cross-library packages.
 # Generated Qt build trees stay in the build stage. This is a development image, not a
 # device filesystem or a complete corresponding-source distribution.
@@ -92,8 +98,9 @@ FROM base AS toolchain
 # qemu-arm lets applications run ARM tests against this Qt inside the SDK.
 # It is installed here so that adding it does not rebuild Qt.
 RUN apt-get update && apt-get install -y --no-install-recommends qemu-user && rm -rf /var/lib/apt/lists/*
-COPY --from=build /tc/arm-kobo-linux-gnueabihf /tc/arm-kobo-linux-gnueabihf
+COPY --from=modules /tc/arm-kobo-linux-gnueabihf /tc/arm-kobo-linux-gnueabihf
 COPY --from=build /tc/qt6-source.tar.xz /usr/src/kobuild/qt6-source.tar.xz
+COPY --from=modules /usr/src/kobuild/qt6-sensors-source.tar.xz /usr/src/kobuild/qt6-sensors-source.tar.xz
 COPY qt6/check.sh /tc/arm-kobo-linux-gnueabihf/check.sh
 # CMake 3.21 and later read CMAKE_TOOLCHAIN_FILE from the environment, so a
 # plain cmake call cross-compiles here.
