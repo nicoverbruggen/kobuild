@@ -37,6 +37,16 @@ for the SDK terms. Building the Android image accepts the SDK package licenses.
 The image includes JDK 21 from Ubuntu under its package terms. Application
 signing keys are not included.
 
+The Android ARM64 host image uses the NDK and SDK rebuild archives pinned in
+android/arm64/manifest.json. Their upstream recipes are available at
+https://github.com/HomuHomu833/android-ndk-custom and
+https://github.com/HomuHomu833/android-sdk-custom. The LLVM source revision is
+recorded in that manifest. These community rebuilds are not official Google
+Linux ARM64 packages. Their bundled licenses and notices remain under
+/opt/android-sdk. The manifest is copied to
+/usr/share/doc/kobuild/android-arm64-manifest.json. It identifies the binary
+inputs and source references, not a complete corresponding-source archive.
+
 Qt license texts are included in /usr/share/doc/kobuild/qt-licenses inside all
 images. Ubuntu package notices remain in /usr/share/doc. The Qt6 source archive
 does not contain the sources for Ubuntu packages or the cross compiler. This

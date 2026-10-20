@@ -25,7 +25,7 @@ COPY LICENSE NOTICE /usr/share/doc/kobuild/
 COPY android/ICU-LICENSE.txt /usr/share/doc/kobuild/icu-LICENSE.txt
 COPY android/check.py /usr/local/lib/kobuild/check-android.py
 COPY tools/check-sdk.py /usr/local/bin/kobuild-check
-ENV KOBUILD_TARGET=android
+ENV KOBUILD_TARGET=android KOBUILD_ANDROID_BUILD_TOOLS=36.0.0
 # The offline check compiles Qt code and checks Android ELF alignment. APK
 # packaging runs separately with network access for Gradle's dependencies.
 RUN python3 /usr/local/bin/kobuild-check

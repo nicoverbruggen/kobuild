@@ -1,0 +1,30 @@
+FROM docker.io/library/ubuntu:24.04@sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
+ARG DEBIAN_FRONTEND=noninteractive
+RUN test "$(dpkg --print-architecture)" = arm64 && \
+    apt-get update && apt-get install -y --no-install-recommends \
+        build-essential ca-certificates cmake curl file git jq libegl1 libfontconfig1 \
+        libglib2.0-0t64 libgl1 libopengl0 libxkbcommon0 ninja-build \
+        openjdk-21-jdk-headless p7zip-full unzip xz-utils zip && \
+    rm -rf /var/lib/apt/lists/*
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64 \
+    ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_ROOT=/opt/android-sdk \
+    ANDROID_NDK_ROOT=/opt/android-sdk/ndk/27.2.12479018 \
+    QT_HOST_PATH=/opt/Qt/6.11.3/gcc_arm64 \
+    QT_ANDROID_ARM64_PATH=/opt/Qt/6.11.3/android_arm64_v8a \
+    KOBUILD_ANDROID_BUILD_TOOLS=36.1.0 \
+    LC_ALL=C.UTF-8
+ENV PATH=/opt/Qt/6.11.3/android_arm64_v8a/bin:/opt/android-sdk/cmdline-tools/pinned/bin:/opt/android-sdk/platform-tools:/usr/lib/jvm/java-21-openjdk-arm64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=/opt/android-sdk/build-tools/36.1.0/aapt2 -Dorg.gradle.daemon=false"
+COPY android/manifest.json /usr/local/lib/kobuild/manifest.json
+COPY android/arm64/manifest.json android/arm64/install.sh /usr/local/lib/kobuild/arm64/
+RUN --mount=type=cache,target=/var/cache/kobuild-android,sharing=locked \
+    bash /usr/local/lib/kobuild/arm64/install.sh
+COPY LICENSE NOTICE /usr/share/doc/kobuild/
+COPY android/ICU-LICENSE.txt /usr/share/doc/kobuild/icu-LICENSE.txt
+COPY android/arm64/smoke /usr/local/lib/kobuild/arm64/smoke
+COPY --chmod=755 android/arm64/check.sh /usr/local/bin/kobuild-check
+ENV KOBUILD_TARGET=android
+RUN bash /usr/local/bin/kobuild-check
+WORKDIR /work
+CMD ["/bin/bash"]

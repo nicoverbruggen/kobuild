@@ -1,0 +1,32 @@
+{
+  "build_tools": "36.1.0",
+  "llvm_source": "https://github.com/HomuHomu833/llvm-custom/tree/9c6bf792e8415e6adf4dbe69076e9f658893c8cf",
+  "archives": [
+    {
+      "file": "android-ndk-r27c-aarch64-linux-gnu.tar.xz",
+      "url": "https://github.com/HomuHomu833/android-ndk-custom/releases/download/r27/android-ndk-r27c-aarch64-linux-gnu.tar.xz",
+      "sha256": "9c6214a64fc3c532b78ec68d56711413e0e9ead27d5c6f2c61d92b9555fdc00c",
+      "kind": "ndk"
+    },
+    {
+      "file": "6.11.3-0-202609240253qtbase-Linux-Ubuntu_24_04-GCC-Linux-Ubuntu_24_04-AARCH64.7z",
+      "url": "https://download.qt.io/online/qtsdkrepository/linux_arm64/desktop/qt6_6113/qt6_6113/qt.qt6.6113.linux_gcc_arm64/6.11.3-0-202609240253qtbase-Linux-Ubuntu_24_04-GCC-Linux-Ubuntu_24_04-AARCH64.7z",
+      "sha256": "7fc7c6d4323ed8955df6cb7a22f639d015b5da9c30bdbc4755ff51b065dd4cef",
+      "kind": "qt-host"
+    },
+    {
+      "file": "6.11.3-0-202609240253icu-linux-Debian11.6-arm64.7z",
+      "url": "https://download.qt.io/online/qtsdkrepository/linux_arm64/desktop/qt6_6113/qt6_6113/qt.qt6.6113.linux_gcc_arm64/6.11.3-0-202609240253icu-linux-Debian11.6-arm64.7z",
+      "sha256": "8a1c113505779998dae544ec21a7e7af9b7df0c0e75744c5b80d2c8a3a40fa31",
+      "kind": "qt-host",
+      "subdirectory": "lib"
+    },
+    {
+      "file": "android-sdk-36.0.0-aarch64-linux-gnu.tar.xz",
+      "url": "https://github.com/HomuHomu833/android-sdk-custom/releases/download/36.0.0/android-sdk-aarch64-linux-gnu.tar.xz",
+      "sha256": "746e3f972d8daf0ba5bfaa24f8e964586c50ef15034c309f25dde8b5a326e1e9",
+      "build_tools_inside": "36.1.0",
+      "kind": "sdk"
+    }
+  ]
+}

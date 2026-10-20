@@ -11,14 +11,24 @@ if [ -z "$engine" ]; then
     elif command -v podman >/dev/null 2>&1; then engine=podman
     else echo 'Install Docker or Podman' >&2; exit 1; fi
 fi
-# Google's Linux NDK tools run on AMD64. ARM64 hosts need container emulation.
-if [ "$target" = android ]; then set -- --platform linux/amd64; else set --; fi
-"$engine" build "$@" --build-arg "JOBS=$jobs" -f "$target/Dockerfile" -t "localhost/kobuild:$target" .
-"$engine" run "$@" --rm --network none "localhost/kobuild:$target" python3 /usr/local/bin/kobuild-check
+recipe="$target/Dockerfile"
+runtime=python3
+set --
 if [ "$target" = android ]; then
-    mkdir -p build/android-gradle
+    arch=${ANDROID_HOST_ARCH:-$(uname -m)}
+    case "$arch" in
+        arm64|aarch64) arch=arm64; recipe=android/Dockerfile.arm64; runtime=bash ;;
+        amd64|x86_64) arch=amd64 ;;
+        *) echo 'ANDROID_HOST_ARCH must be amd64 or arm64' >&2; exit 2 ;;
+    esac
+    set -- --platform "linux/$arch"
+fi
+"$engine" build "$@" --build-arg "JOBS=$jobs" -f "$recipe" -t "localhost/kobuild:$target" .
+"$engine" run "$@" --rm --network none "localhost/kobuild:$target" "$runtime" /usr/local/bin/kobuild-check
+if [ "$target" = android ]; then
+    mkdir -p "build/android-gradle-$arch"
     "$engine" run "$@" --rm --user "$(id -u):$(id -g)" \
         -e HOME=/tmp -e ANDROID_USER_HOME=/tmp/.android -e GRADLE_USER_HOME=/gradle \
-        --volume "$PWD/build/android-gradle:/gradle" \
-        "localhost/kobuild:$target" python3 /usr/local/bin/kobuild-check --apk
+        --volume "$PWD/build/android-gradle-$arch:/gradle" \
+        "localhost/kobuild:$target" "$runtime" /usr/local/bin/kobuild-check --apk
 fi

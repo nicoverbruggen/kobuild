@@ -21,10 +21,9 @@ jobs:
         host:
           - {arch: amd64, runner: ubuntu-latest}
           - {arch: arm64, runner: ubuntu-24.04-arm}
-        exclude:
-          - target: android
-            host: {arch: arm64, runner: ubuntu-24.04-arm}
     runs-on: ${{ matrix.host.runner }}
+    env:
+      CHECK_RUNTIME: ${{ inputs.target == 'android' && matrix.host.arch == 'arm64' && 'bash' || 'python3' }}
     timeout-minutes: 180
     permissions:
       contents: read
@@ -41,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ${{ matrix.target }}/Dockerfile
+          file: ${{ matrix.target == 'android' && matrix.host.arch == 'arm64' && 'android/Dockerfile.arm64' || format('{0}/Dockerfile', matrix.target) }}
           platforms: linux/${{ matrix.host.arch }}
           load: true
           tags: localhost/kobuild:${{ matrix.target }}
@@ -54,7 +53,7 @@ jobs:
       - name: Check SDK
         env:
           TARGET: ${{ matrix.target }}
-        run: docker run --rm --network none "localhost/kobuild:$TARGET" python3 /usr/local/bin/kobuild-check
+        run: docker run --rm --network none "localhost/kobuild:$TARGET" "$CHECK_RUNTIME" /usr/local/bin/kobuild-check
       - name: Cache Android Gradle downloads
         if: matrix.target == 'android'
         uses: actions/cache@v4
@@ -62,7 +61,7 @@ jobs:
           path: |
             build/android-gradle/caches
             build/android-gradle/wrapper
-          key: android-gradle-${{ runner.os }}-${{ hashFiles('android/manifest.json') }}
+          key: android-gradle-${{ runner.os }}-${{ matrix.host.arch }}-${{ hashFiles('android/manifest.json', 'android/arm64/manifest.json') }}
       - name: Check Android APK packaging
         if: matrix.target == 'android'
         run: |
@@ -70,7 +69,7 @@ jobs:
           docker run --rm --user "$(id -u):$(id -g)" \
             -e HOME=/tmp -e ANDROID_USER_HOME=/tmp/.android -e GRADLE_USER_HOME=/gradle \
             --volume "$PWD/build/android-gradle:/gradle" \
-            localhost/kobuild:android python3 /usr/local/bin/kobuild-check --apk
+            localhost/kobuild:android "$CHECK_RUNTIME" /usr/local/bin/kobuild-check --apk
       - name: Log in to GHCR
         if: startsWith(github.ref, 'refs/tags/')
         uses: docker/login-action@v4
@@ -129,6 +128,5 @@ jobs:
           if [[ "$RELEASE_TAG" != *-* ]]; then tags+=(--tag "$image:$TARGET"); fi
           refs=()
           arches=(amd64 arm64)
-          if [[ "$TARGET" == android ]]; then arches=(amd64); fi
           for arch in "${arches[@]}"; do refs+=("$(cat "digests/$TARGET-$arch.txt")"); done
           docker buildx imagetools create "${tags[@]}" "${refs[@]}"
