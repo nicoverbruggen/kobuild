@@ -4,7 +4,7 @@ RUN test "$(dpkg --print-architecture)" = arm64 && \
     apt-get update && apt-get install -y --no-install-recommends \
         build-essential ca-certificates cmake curl file git jq libegl1 libfontconfig1 \
         libglib2.0-0t64 libgl1 libopengl0 libxkbcommon0 ninja-build \
-        openjdk-21-jdk-headless p7zip-full unzip xz-utils zip && \
+        openjdk-21-jdk-headless p7zip-full pkg-config unzip xz-utils zip && \
     rm -rf /var/lib/apt/lists/*
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64 \
     ANDROID_HOME=/opt/android-sdk \

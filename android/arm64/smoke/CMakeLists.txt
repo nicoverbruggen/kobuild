@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(kobuild_android_check LANGUAGES CXX)
+find_package(PkgConfig REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 find_package(Qt6 6.11.3 EXACT REQUIRED COMPONENTS Core Gui Widgets Network Sensors)

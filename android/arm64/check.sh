@@ -2,6 +2,9 @@
 set -euo pipefail
 case "${1:-}" in '') apk=OFF ;; --apk) apk=ON ;; *) echo 'Usage: kobuild-check [--apk]' >&2; exit 2 ;; esac
 [[ $# -le 1 && $(uname -m) == aarch64 ]]
+for tool in cmake ninja make patch perl pkg-config; do
+    command -v "$tool" >/dev/null
+done
 docs=/usr/share/doc/kobuild
 tools="$ANDROID_HOME/build-tools/$KOBUILD_ANDROID_BUILD_TOOLS"
 llvm="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-arm64/bin"
