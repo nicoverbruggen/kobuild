@@ -80,6 +80,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_AUTOMOC ON)
 find_package(Qt@MAJOR@ REQUIRED COMPONENTS Core Gui Widgets Sensors)
 add_executable(check main.cpp)
+add_custom_target(check-strip
+    COMMAND "${CMAKE_STRIP}" --strip-debug "$<TARGET_FILE:check>"
+    DEPENDS check VERBATIM)
 target_link_libraries(check PRIVATE Qt@MAJOR@::Widgets Qt@MAJOR@::Sensors)
 if(TARGET Qt@MAJOR@::GuiPrivate)
     target_link_libraries(check PRIVATE Qt@MAJOR@::GuiPrivate)
@@ -90,6 +93,7 @@ endif()
 '''.replace('@MAJOR@', major))
         subprocess.run(['cmake', '-S', str(work), '-B', str(work / 'build'), '-G', 'Ninja'], check=True)
         subprocess.run(['cmake', '--build', str(work / 'build'), '--parallel', '2'], check=True)
+        subprocess.run(['cmake', '--build', str(work / 'build'), '--target', 'check-strip'], check=True)
         binary = work / 'build/check'
         header = binary.read_bytes()[:20]
         if header[:6] != b'\x7fELF\x01\x01' or header[18:20] != b'\x28\x00':
