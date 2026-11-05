@@ -24,7 +24,7 @@
     {
       "file": "android-sdk-36.0.0-aarch64-linux-gnu.tar.xz",
       "url": "https://github.com/HomuHomu833/android-sdk-custom/releases/download/36.0.0/android-sdk-aarch64-linux-gnu.tar.xz",
-      "sha256": "746e3f972d8daf0ba5bfaa24f8e964586c50ef15034c309f25dde8b5a326e1e9",
+      "sha256": "91de9261ce2520d64c5b65438999fcedb86a7b0e68e2082313897a848adf51d1",
       "build_tools_inside": "36.1.0",
       "kind": "sdk"
     }
