@@ -41,6 +41,24 @@ def check_distribution_files(target):
             raise RuntimeError('Missing distribution notice: ' + str(path))
 
 
+def check_device_glibc_headers(work):
+    """Firmware 4.x has glibc 2.19. Ubuntu's glibc 2.35 cross headers must not be searched."""
+    # C accepts an undeclared function with a warning; C++ rejects it.
+    compilers = (('gcc', 'c', ['-Werror=implicit-function-declaration']), ('g++', 'cpp', []))
+    for compiler, suffix, flags in compilers:
+        command = [compiler, '-fsyntax-only', '-D_GNU_SOURCE', *flags]
+        older = work / ('glibc-2.19.' + suffix)
+        older.write_text('#include <stdlib.h>\n#include <sys/auxv.h>\n'
+                         'int main(void) { return getauxval(AT_HWCAP) && secure_getenv("HOME"); }\n')
+        subprocess.run(command + [str(older)], check=True)
+        # explicit_bzero arrived in glibc 2.25.
+        newer = work / ('glibc-2.25.' + suffix)
+        newer.write_text('#include <string.h>\nint main(void) { char b[1]; explicit_bzero(b, 1); return 0; }\n')
+        result = subprocess.run(command + [str(newer)], capture_output=True)
+        if result.returncode == 0:
+            raise RuntimeError(compiler + ' reads glibc headers newer than the device sysroot')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--target', choices=['qt5', 'qt6', 'android'], default=os.environ.get('KOBUILD_TARGET'))
@@ -94,6 +112,8 @@ endif()
         subprocess.run(['cmake', '-S', str(work), '-B', str(work / 'build'), '-G', 'Ninja'], check=True)
         subprocess.run(['cmake', '--build', str(work / 'build'), '--parallel', '2'], check=True)
         subprocess.run(['cmake', '--build', str(work / 'build'), '--target', 'check-strip'], check=True)
+        if args.target == 'qt5':
+            check_device_glibc_headers(work)
         binary = work / 'build/check'
         header = binary.read_bytes()[:20]
         if header[:6] != b'\x7fELF\x01\x01' or header[18:20] != b'\x28\x00':

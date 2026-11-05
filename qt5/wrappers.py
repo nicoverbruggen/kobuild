@@ -1,5 +1,6 @@
 """Use the old runtime headers and libraries with the modern ARM compiler."""
 from pathlib import Path
+import subprocess
 
 loader = Path('/tc/qt5-host/lib64/ld-linux-x86-64.so.2')
 loader.unlink()
@@ -7,8 +8,16 @@ loader.symlink_to('../lib/x86_64-linux-gnu/ld-2.28.so')
 root = Path('/tc/qt5')
 bin = root / 'bin'
 bin.mkdir(exist_ok=True)
+# Ubuntu's cross compiler always searches its own glibc 2.35 headers in
+# /usr/arm-linux-gnueabihf/include before the sysroot. Firmware 4.x has glibc
+# 2.19, so replace the standard search list: the compiler's own headers, then
+# the sysroot. -idirafter keeps both after the caller's -I and -isystem
+# directories, where the compiler puts its standard directories.
+compiler_headers = subprocess.run(['/usr/bin/arm-linux-gnueabihf-gcc-11', '-print-file-name=include'],
+                                  check=True, capture_output=True, text=True).stdout.strip()
+system_includes = ' -nostdinc -idirafter ' + compiler_headers + ' -idirafter /tc/qt5/sysroot/usr/include'
 for name in ('gcc', 'g++'):
-    includes = '' if name == 'gcc' else ' -fno-sized-deallocation -include /tc/qt5/cxx-compat.h -nostdinc++ -isystem /tc/qt5/include/c++/4.9.4 -isystem /tc/qt5/include/c++/4.9.4/arm-nickel-linux-gnueabihf'
+    includes = system_includes if name == 'gcc' else ' -fno-sized-deallocation -include /tc/qt5/cxx-compat.h -isystem /tc/qt5/include/c++/4.9.4 -isystem /tc/qt5/include/c++/4.9.4/arm-nickel-linux-gnueabihf' + system_includes
     output = bin / name
     output.write_text('#!/bin/sh\nexec /usr/bin/arm-linux-gnueabihf-' + name + '-11'
                       + ' --sysroot=/tc/qt5/sysroot -B/tc/qt5/sysroot/usr/lib/ -L/tc/qt5/sysroot/lib -L/tc/qt5/sysroot/usr/lib -no-pie'

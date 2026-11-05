@@ -10,6 +10,8 @@ SDK containers for Kobo and Android. Qt5 targets Kobo firmware 4.x; Qt6 targets 
 
 Images are tagged `localhost/kobuild:qt5`, `localhost/kobuild:qt6` and `localhost/kobuild:android`. Docker is used when installed; set `CONTAINER_ENGINE=podman` to select Podman. Builds use two compiler jobs by default; set `JOBS` to change it. Linux AMD64 and ARM64 hosts both produce ARM32 Kobo binaries. Android builds select the native host architecture. Set `ANDROID_HOST_ARCH=amd64` or `ANDROID_HOST_ARCH=arm64` to select it explicitly, including when using a remote container engine. Emulation is required only when selecting another host architecture.
 
+The Qt5 compilers search only the NickelTC sysroot's glibc 2.19 headers, the glibc of firmware 4.x. They do not search Ubuntu's glibc 2.35 cross headers, so code that needs a newer glibc fails to compile. The SDK check verifies this.
+
 To configure and compile a CMake project:
 
 ```sh
