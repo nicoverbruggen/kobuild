@@ -82,3 +82,36 @@ jobs:
     uses: ./.github/workflows/build-sdk.yml
     with:
       target: ${{ matrix.target }}
+
+  # Every release names all three SDKs, so consumers can pin one tag. An SDK
+  # whose recipe did not change gets the release tag on its current image,
+  # with the same digest and no rebuild.
+  retag:
+    needs: select
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag unchanged SDKs
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          TARGETS: ${{ needs.select.outputs.targets }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          for target in qt5 qt6 android; do
+            if jq -e --arg target "$target" 'index($target) != null' <<< "$TARGETS" > /dev/null; then
+              continue
+            fi
+            echo "Tagging the current $target image as $target-$RELEASE_TAG"
+            docker buildx imagetools create --tag "$image:$target-$RELEASE_TAG" "$image:$target"
+          done

@@ -19,7 +19,7 @@ docker run --rm -v "$PWD:/work" -w /work localhost/kobuild:qt6 \
     sh -c 'cmake -S . -B build/qt6 -G Ninja && cmake --build build/qt6 --parallel 2'
 ```
 
-GitHub Actions builds SDKs whose platform folders changed. Releases compare against the last successful release, so a cancelled release does not hide pending changes. Each SDK publishes independently after its own checks pass. A tag such as `v1.0.0` publishes `ghcr.io/<owner>/<repo>:qt6-v1.0.0` when Qt6 changed; unchanged SDK images keep their existing tags. Stable releases also update the selected SDK's alias. Beta tags publish versioned images only. Use the manual workflow's target selector for an explicit rebuild, including changes to shared files outside the platform folders. Select a release tag to publish that rebuild. Publishing uses `GITHUB_TOKEN` with package write access.
+GitHub Actions builds SDKs whose platform folders changed. Releases compare against the last successful release, so a cancelled release does not hide pending changes. Each SDK publishes independently after its own checks pass. A tag such as `v1.0.0` publishes `ghcr.io/<owner>/<repo>:qt6-v1.0.0` when Qt6 changed. An SDK that did not change gets the same release tag on its current image, with the same digest and no rebuild, so every release names `qt5-`, `qt6-` and `android-` images and consumers can pin all three from one tag. Stable releases also update the selected SDK's alias. Beta tags publish versioned images only. Use the manual workflow's target selector for an explicit rebuild, including changes to shared files outside the platform folders. Select a release tag to publish that rebuild. Publishing uses `GITHUB_TOKEN` with package write access.
 
 ## Android
 
