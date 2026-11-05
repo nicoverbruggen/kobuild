@@ -9,15 +9,15 @@
       "kind": "ndk"
     },
     {
-      "file": "6.11.3-0-202609240253qtbase-Linux-Ubuntu_24_04-GCC-Linux-Ubuntu_24_04-AARCH64.7z",
-      "url": "https://download.qt.io/online/qtsdkrepository/linux_arm64/desktop/qt6_6113/qt6_6113/qt.qt6.6113.linux_gcc_arm64/6.11.3-0-202609240253qtbase-Linux-Ubuntu_24_04-GCC-Linux-Ubuntu_24_04-AARCH64.7z",
-      "sha256": "7fc7c6d4323ed8955df6cb7a22f639d015b5da9c30bdbc4755ff51b065dd4cef",
+      "file": "6.11.3-0-202610231039qtbase-Linux-Ubuntu_24_04-GCC-Linux-Ubuntu_24_04-AARCH64.7z",
+      "url": "https://download.qt.io/online/qtsdkrepository/linux_arm64/desktop/qt6_6113/qt6_6113/qt.qt6.6113.linux_gcc_arm64/6.11.3-0-202610231039qtbase-Linux-Ubuntu_24_04-GCC-Linux-Ubuntu_24_04-AARCH64.7z",
+      "sha256": "cea095aa0bfe6e60032573874db89a55eaddfcb641b2e5226e9605f5f241d5b9",
       "kind": "qt-host"
     },
     {
-      "file": "6.11.3-0-202609240253icu-linux-Debian11.6-arm64.7z",
-      "url": "https://download.qt.io/online/qtsdkrepository/linux_arm64/desktop/qt6_6113/qt6_6113/qt.qt6.6113.linux_gcc_arm64/6.11.3-0-202609240253icu-linux-Debian11.6-arm64.7z",
-      "sha256": "8a1c113505779998dae544ec21a7e7af9b7df0c0e75744c5b80d2c8a3a40fa31",
+      "file": "6.11.3-0-202610231039icu-linux-Debian11.6-arm64.7z",
+      "url": "https://download.qt.io/online/qtsdkrepository/linux_arm64/desktop/qt6_6113/qt6_6113/qt.qt6.6113.linux_gcc_arm64/6.11.3-0-202610231039icu-linux-Debian11.6-arm64.7z",
+      "sha256": "fb5cf7ec5497dc437e5f6c395a90601ebe09ee8f5fb7add0d04c4d3b7a319099",
       "kind": "qt-host",
       "subdirectory": "lib"
     },
