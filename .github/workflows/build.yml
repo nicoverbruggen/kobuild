@@ -10,7 +10,7 @@ on:
       target:
         description: SDK to build (select a release tag to publish)
         type: choice
-        options: [all, qt5, qt6, android]
+        options: [all, qt5, qt6, android, linux]
         default: all
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
           set -euo pipefail
           if [[ "$EVENT" == workflow_dispatch ]]; then
             if [[ "$REQUESTED" == all ]]; then
-              targets='["qt5","qt6","android"]'
+              targets='["qt5","qt6","android","linux"]'
             else
               targets=$(jq -cn --arg target "$REQUESTED" '[$target]')
             fi
@@ -59,7 +59,7 @@ jobs:
               base=$PUSH_BASE
             fi
             targets='[]'
-            for target in qt5 qt6 android; do
+            for target in qt5 qt6 android linux; do
               if [[ -z "$base" || "$base" =~ ^0+$ ]] || \
                   ! git diff --quiet "$base" HEAD -- "$target/"; then
                 targets=$(jq -c --arg target "$target" '. + [$target]' <<< "$targets")
@@ -83,7 +83,7 @@ jobs:
     with:
       target: ${{ matrix.target }}
 
-  # Every release names all three SDKs, so consumers can pin one tag. An SDK
+  # Every release names every SDK, so consumers can pin one tag. An SDK
   # whose recipe did not change gets the release tag on its current image,
   # with the same digest and no rebuild.
   retag:
@@ -108,7 +108,7 @@ jobs:
         run: |
           set -euo pipefail
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          for target in qt5 qt6 android; do
+          for target in qt5 qt6 android linux; do
             if jq -e --arg target "$target" 'index($target) != null' <<< "$TARGETS" > /dev/null; then
               continue
             fi

@@ -2,7 +2,7 @@
 set -eu
 cd "$(dirname "$0")"
 target=${1:-qt6}
-case "$target" in qt5|qt6|android) ;; *) echo 'Usage: ./build.sh [qt5|qt6|android]' >&2; exit 2;; esac
+case "$target" in qt5|qt6|android|linux) ;; *) echo 'Usage: ./build.sh [qt5|qt6|android|linux]' >&2; exit 2;; esac
 jobs=${JOBS:-2}
 case "$jobs" in ''|*[!0-9]*|0) echo 'JOBS must be a positive integer' >&2; exit 2;; esac
 engine=${CONTAINER_ENGINE:-}
@@ -13,6 +13,7 @@ if [ -z "$engine" ]; then
 fi
 recipe="$target/Dockerfile"
 runtime=python3
+[ "$target" != linux ] || runtime=bash
 set --
 if [ "$target" = android ]; then
     arch=${ANDROID_HOST_ARCH:-$(uname -m)}

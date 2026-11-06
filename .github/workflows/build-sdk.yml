@@ -23,7 +23,7 @@ jobs:
           - {arch: arm64, runner: ubuntu-24.04-arm}
     runs-on: ${{ matrix.host.runner }}
     env:
-      CHECK_RUNTIME: ${{ inputs.target == 'android' && matrix.host.arch == 'arm64' && 'bash' || 'python3' }}
+      CHECK_RUNTIME: ${{ (inputs.target == 'linux' || (inputs.target == 'android' && matrix.host.arch == 'arm64')) && 'bash' || 'python3' }}
     timeout-minutes: 180
     permissions:
       contents: read
