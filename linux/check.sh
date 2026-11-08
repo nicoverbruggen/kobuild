@@ -30,7 +30,10 @@ QT_QPA_PLATFORM=offscreen ./build/check
 # A clean rebuild must reuse cached compilation and still link with LLD.
 ccache --zero-stats
 cmake --build --preset linux --clean-first
+ccache --show-stats
 ccache --print-stats | awk '$1 == "direct_cache_hit" || $1 == "preprocessed_cache_hit" {hits += $2} END {exit !(hits > 0)}'
-readelf --string-dump=.comment build/check | grep -q 'Linker: LLD'
+readelf --string-dump=.comment build/check > "$work/linker.txt"
+cat "$work/linker.txt"
+grep -Eq 'Linker: .*LLD' "$work/linker.txt"
 QT_QPA_PLATFORM=offscreen ./build/check
 echo 'Qt desktop build, link and headless run checks passed'
