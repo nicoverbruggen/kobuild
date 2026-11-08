@@ -47,10 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       targets: ${{ steps.select.outputs.targets }}
+      previous_tag: ${{ steps.select.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - run: bash .github/scripts/test-retag.sh
       - name: Select changed SDK recipes
         id: select
         env:
@@ -74,8 +76,10 @@ jobs:
               # A cancelled or failed tag did not finish publishing its SDKs.
               releases=$(gh api --paginate --method GET \
                 "repos/$GITHUB_REPOSITORY/actions/workflows/build.yml/runs?status=success&event=push&per_page=100" \
-                --jq '.workflow_runs[] | select(.head_branch | test("^v[0-9]")) | .head_sha')
-              base=${releases%%$'\n'*}
+                --jq '.workflow_runs[] | select(.head_branch | test("^v[0-9]")) | "\(.head_sha) \(.head_branch)"')
+              previous=${releases%%$'\n'*}
+              base=${previous%% *}
+              echo "previous_tag=${previous#* }" >> "$GITHUB_OUTPUT"
             else
               base=$PUSH_BASE
             fi
@@ -105,11 +109,11 @@ jobs:
       target: ${{ matrix.target }}
 
   # Every release names every SDK, so consumers can pin one tag. An SDK
-  # whose recipe did not change gets the release tag on its current image,
-  # with the same digest and no rebuild.
+  # whose recipe did not change copies the preceding successful release,
+  # including an experimental release, with the same digest and no rebuild.
   retag:
     needs: select
-    if: startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -126,13 +130,5 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
           TARGETS: ${{ needs.select.outputs.targets }}
-        run: |
-          set -euo pipefail
-          image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          for target in qt5 qt6 android linux; do
-            if jq -e --arg target "$target" 'index($target) != null' <<< "$TARGETS" > /dev/null; then
-              continue
-            fi
-            echo "Tagging the current $target image as $target-$RELEASE_TAG"
-            docker buildx imagetools create --tag "$image:$target-$RELEASE_TAG" "$image:$target"
-          done
+          PREVIOUS_TAG: ${{ needs.select.outputs.previous_tag }}
+        run: bash .github/scripts/retag.sh
