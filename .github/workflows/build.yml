@@ -22,7 +22,28 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  superseded:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    concurrency:
+      group: containers-select-${{ github.sha }}
+      cancel-in-progress: false
+    outputs:
+      proceed: ${{ steps.select.outputs.proceed }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: node .github/scripts/superseded.test.cjs
+      - id: select
+        uses: actions/github-script@v8
+        with:
+          script: await require('./.github/scripts/superseded.cjs').run({github, context, core})
+
   select:
+    needs: superseded
+    if: needs.superseded.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     outputs:
       targets: ${{ steps.select.outputs.targets }}
