@@ -55,5 +55,10 @@
       "sha256": "8d4037ffc64be519369e31e41ee50e897cbac5fc12f2eb4140178581d97d3340",
       "kind": "source"
     }
-  ]
+  ],
+  "gradle": {
+    "version": "9.3.1",
+    "url": "https://services.gradle.org/distributions/gradle-9.3.1-bin.zip",
+    "sha256": "b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06"
+  }
 }

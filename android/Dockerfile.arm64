@@ -20,11 +20,14 @@ COPY android/manifest.json /usr/local/lib/kobuild/manifest.json
 COPY android/arm64/manifest.json android/arm64/install.sh /usr/local/lib/kobuild/arm64/
 RUN --mount=type=cache,target=/var/cache/kobuild-android,sharing=locked \
     bash /usr/local/lib/kobuild/arm64/install.sh
+COPY android/install-gradle.sh android/check-gradle.sh /usr/local/lib/kobuild/
+RUN --mount=type=cache,target=/var/cache/kobuild-android,sharing=locked \
+    bash /usr/local/lib/kobuild/install-gradle.sh
 COPY LICENSE NOTICE /usr/share/doc/kobuild/
 COPY android/ICU-LICENSE.txt /usr/share/doc/kobuild/icu-LICENSE.txt
 COPY android/arm64/smoke /usr/local/lib/kobuild/arm64/smoke
 COPY --chmod=755 android/arm64/check.sh /usr/local/bin/kobuild-check
 ENV KOBUILD_TARGET=android
-RUN bash /usr/local/bin/kobuild-check
+RUN --network=none bash /usr/local/bin/kobuild-check
 WORKDIR /work
 CMD ["/bin/bash"]

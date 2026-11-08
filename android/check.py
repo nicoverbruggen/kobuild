@@ -29,6 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--apk', action='store_true')
     args = parser.parse_args()
+    run('bash', '/usr/local/lib/kobuild/check-gradle.sh')
     docs = Path('/usr/share/doc/kobuild')
     manifest = json.loads((docs / 'android-manifest.json').read_text())
     for spec in manifest['qt_archives']:

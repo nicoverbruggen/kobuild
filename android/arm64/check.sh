@@ -5,6 +5,7 @@ case "${1:-}" in '') apk=OFF ;; --apk) apk=ON ;; *) echo 'Usage: kobuild-check [
 for tool in cmake ninja make patch perl pkg-config; do
     command -v "$tool" >/dev/null
 done
+bash /usr/local/lib/kobuild/check-gradle.sh
 docs=/usr/share/doc/kobuild
 tools="$ANDROID_HOME/build-tools/$KOBUILD_ANDROID_BUILD_TOOLS"
 llvm="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-arm64/bin"
