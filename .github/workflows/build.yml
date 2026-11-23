@@ -10,6 +10,7 @@ on:
       target:
         description: SDK to build (select a release tag to publish)
         type: choice
+        # Keep this menu in sync with .github/sdk-targets.json.
         options: [all, qt5, qt6, android, linux]
         default: all
 
@@ -63,9 +64,10 @@ jobs:
           PUSH_BASE: ${{ github.event.before }}
         run: |
           set -euo pipefail
+          all_targets=$(jq -c . .github/sdk-targets.json)
           if [[ "$EVENT" == workflow_dispatch ]]; then
             if [[ "$REQUESTED" == all ]]; then
-              targets='["qt5","qt6","android","linux"]'
+              targets=$all_targets
             else
               targets=$(jq -cn --arg target "$REQUESTED" '[$target]')
             fi
@@ -84,12 +86,12 @@ jobs:
               base=$PUSH_BASE
             fi
             targets='[]'
-            for target in qt5 qt6 android linux; do
+            while IFS= read -r target; do
               if [[ -z "$base" || "$base" =~ ^0+$ ]] || \
                   ! git diff --quiet "$base" HEAD -- "$target/"; then
                 targets=$(jq -c --arg target "$target" '. + [$target]' <<< "$targets")
               fi
-            done
+            done < <(jq -r '.[]' <<< "$all_targets")
           fi
           echo "Selected SDKs: $targets"
           echo "targets=$targets" >> "$GITHUB_OUTPUT"
