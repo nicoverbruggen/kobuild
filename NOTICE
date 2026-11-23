@@ -3,7 +3,7 @@ kobuild recipes and scripts use the MIT license in LICENSE.
 The SDK images include third-party software under its own licenses. The MIT
 license does not replace the terms of Qt, its patches, or other dependencies.
 
-Qt5 uses the pinned NickelTC image in qt5/Dockerfile. Its upstream recipes,
+Qt5 uses the pinned NickelTC image in nickel-qt5/Dockerfile. Its upstream recipes,
 patches and source references are available at https://github.com/pgaskin/NickelTC.
 The exact source revisions of all components in that binary image have not been
 verified. The image digest identifies binaries, not a complete source archive.
@@ -12,13 +12,13 @@ Debian package notices and package status from NickelTC are retained under
 nickeltc-package-status. This metadata covers the upstream image's packages;
 it is not an inventory of only the files copied into this SDK.
 
-Qt6 builds the official archive recorded in qt6/source/source.json with the
+Qt6 builds the official archive recorded in nickel-qt6/source/source.json with the
 included patches. The prepared Qt source, patch inputs, license notices and
 build scripts are bundled in /usr/src/kobuild/qt6-source.tar.xz. The source
 archive includes third-party code bundled in Qt under its original terms.
 Qt patch notices are also available at
 /usr/share/doc/kobuild/qt6-patches-NOTICE.
-Qt Sensors uses the official archive pinned in qt6/sensors.json. Its source,
+Qt Sensors uses the official archive pinned in nickel-qt6/sensors.json. Its source,
 license texts, checksum manifest and build script are bundled separately in
 /usr/src/kobuild/qt6-sensors-source.tar.xz.
 

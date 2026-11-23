@@ -16,13 +16,13 @@ COPY --from=nickel /usr/lib/x86_64-linux-gnu/libstdc++.so.6* /tc/qt5-host/usr/li
 COPY --from=nickel /usr/share/doc /usr/share/doc/kobuild/nickeltc-packages
 COPY --from=nickel /usr/share/common-licenses /usr/share/doc/kobuild/nickeltc-common-licenses
 COPY --from=nickel /var/lib/dpkg/status /usr/share/doc/kobuild/nickeltc-package-status
-COPY qt5/toolchain.cmake qt5/wrappers.py qt5/cxx-compat.h /tc/qt5/
+COPY nickel-qt5/toolchain.cmake nickel-qt5/wrappers.py nickel-qt5/cxx-compat.h /tc/qt5/
 RUN python3 /tc/qt5/wrappers.py
 ENV PATH=/tc/qt5/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     CMAKE_TOOLCHAIN_FILE=/tc/qt5/toolchain.cmake LC_ALL=C.UTF-8
 COPY LICENSE NOTICE /usr/share/doc/kobuild/
-COPY qt6/source/LICENSES /usr/share/doc/kobuild/qt-licenses
+COPY nickel-qt6/source/LICENSES /usr/share/doc/kobuild/qt-licenses
 COPY tools/check-sdk.py /usr/local/bin/kobuild-check
-ENV KOBUILD_TARGET=qt5
+ENV KOBUILD_TARGET=nickel-qt5
 WORKDIR /work
 CMD ["/bin/bash"]

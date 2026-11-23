@@ -12,7 +12,7 @@ import tarfile
 def check_distribution_files(target):
     docs = Path('/usr/share/doc/kobuild')
     required = [docs / 'LICENSE', docs / 'NOTICE', docs / 'qt-licenses/LGPL-3.0-only.txt']
-    if target == 'qt5':
+    if target == 'nickel-qt5':
         required += [docs / 'nickeltc-packages/libc6/copyright',
                      docs / 'nickeltc-packages/libstdc++6/copyright',
                      docs / 'nickeltc-common-licenses/GPL-3', docs / 'nickeltc-package-status']
@@ -61,11 +61,14 @@ def check_device_glibc_headers(work):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--target', choices=['qt5', 'qt6', 'android'], default=os.environ.get('KOBUILD_TARGET'))
+    parser.add_argument('--target', choices=['nickel-qt5', 'nickel-qt6', 'android', 'qt5', 'qt6'],
+                        default=os.environ.get('KOBUILD_TARGET'))
     parser.add_argument('--apk', action='store_true', help='also package an Android APK; requires network access')
     args = parser.parse_args()
-    if args.target not in ('qt5', 'qt6', 'android'):
-        parser.error('Set --target or KOBUILD_TARGET to qt5, qt6 or android')
+    if args.target in ('qt5', 'qt6'):
+        args.target = f'nickel-{args.target}'
+    if args.target not in ('nickel-qt5', 'nickel-qt6', 'android'):
+        parser.error('Set --target or KOBUILD_TARGET to nickel-qt5, nickel-qt6 or android')
     if args.target == 'android':
         subprocess.run([sys.executable, '/usr/local/lib/kobuild/check-android.py', *(['--apk'] if args.apk else [])], check=True)
         return
@@ -112,7 +115,7 @@ endif()
         subprocess.run(['cmake', '-S', str(work), '-B', str(work / 'build'), '-G', 'Ninja'], check=True)
         subprocess.run(['cmake', '--build', str(work / 'build'), '--parallel', '2'], check=True)
         subprocess.run(['cmake', '--build', str(work / 'build'), '--target', 'check-strip'], check=True)
-        if args.target == 'qt5':
+        if args.target == 'nickel-qt5':
             check_device_glibc_headers(work)
         binary = work / 'build/check'
         header = binary.read_bytes()[:20]

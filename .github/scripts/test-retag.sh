@@ -16,17 +16,19 @@ bash .github/scripts/retag.sh
 [[ $(wc -l < "$RETAG_LOG") -eq $expected_retags ]]
 grep -Fx 'buildx imagetools create --tag ghcr.io/example/sdk:linux-v1.0-ci.2 ghcr.io/example/sdk:linux-v1.0-ci.1' "$RETAG_LOG"
 grep -Fx 'buildx imagetools create --tag ghcr.io/example/sdk:kindle-v1.0-ci.2 ghcr.io/example/sdk:kindle-v1.0-ci.1' "$RETAG_LOG"
+grep -Fx 'buildx imagetools create --tag ghcr.io/example/sdk:nickel-qt5-v1.0-ci.2 --tag ghcr.io/example/sdk:qt5-v1.0-ci.2 ghcr.io/example/sdk:nickel-qt5-v1.0-ci.1' "$RETAG_LOG"
 if grep -q android "$RETAG_LOG"; then exit 1; fi
 : > "$RETAG_LOG"
 RELEASE_TAG=v1.0 bash .github/scripts/retag.sh
 grep -Fx 'buildx imagetools create --tag ghcr.io/example/sdk:linux-v1.0 --tag ghcr.io/example/sdk:linux ghcr.io/example/sdk:linux-v1.0-ci.1' "$RETAG_LOG"
 grep -Fx 'buildx imagetools create --tag ghcr.io/example/sdk:kindle-v1.0 --tag ghcr.io/example/sdk:kindle ghcr.io/example/sdk:kindle-v1.0-ci.1' "$RETAG_LOG"
+grep -Fx 'buildx imagetools create --tag ghcr.io/example/sdk:nickel-qt6-v1.0 --tag ghcr.io/example/sdk:nickel-qt6 --tag ghcr.io/example/sdk:qt6-v1.0 --tag ghcr.io/example/sdk:qt6 ghcr.io/example/sdk:nickel-qt6-v1.0-ci.1' "$RETAG_LOG"
 : > "$RETAG_LOG"
 if PREVIOUS_TAG= bash .github/scripts/retag.sh; then exit 1; fi
 [[ ! -s "$RETAG_LOG" ]]
-TARGETS='["kindle"]' bash .github/scripts/retag.sh
-[[ $(wc -l < "$RETAG_LOG") -eq $expected_retags ]]
-if grep -q kindle "$RETAG_LOG"; then exit 1; fi
+TARGETS='["kindle","nickel-qt5","nickel-qt6"]' bash .github/scripts/retag.sh
+[[ $(wc -l < "$RETAG_LOG") -eq $((expected_retags - 2)) ]]
+if grep -Eq 'kindle|nickel-qt|sdk:qt' "$RETAG_LOG"; then exit 1; fi
 : > "$RETAG_LOG"
 PREVIOUS_TAG= TARGETS="$all_targets" bash .github/scripts/retag.sh
 [[ ! -s "$RETAG_LOG" ]]

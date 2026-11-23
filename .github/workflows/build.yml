@@ -10,8 +10,8 @@ on:
       target:
         description: SDK to build (select a release tag to publish)
         type: choice
-        # Keep this menu in sync with .github/sdk-targets.json.
-        options: [all, qt5, qt6, android, linux, kindle]
+        # List the canonical targets first, then any aliases.
+        options: [all, nickel-qt5, nickel-qt6, android, linux, kindle, qt5, qt6]
         default: all
 
 permissions:
@@ -66,6 +66,7 @@ jobs:
           set -euo pipefail
           all_targets=$(jq -c . .github/sdk-targets.json)
           if [[ "$EVENT" == workflow_dispatch ]]; then
+            case "$REQUESTED" in qt5|qt6) REQUESTED="nickel-$REQUESTED" ;; esac
             if [[ "$REQUESTED" == all ]]; then
               targets=$all_targets
             else

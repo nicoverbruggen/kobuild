@@ -5,14 +5,16 @@ Kobalt build tooling. This repository builds SDK images for Kobo, Kindle, Androi
 ## Build locally
 
 ```sh
-./build.sh qt5
-./build.sh qt6
+./build.sh nickel-qt5
+./build.sh nickel-qt6
 ./build.sh android
 ./build.sh linux
 ./build.sh kindle
 ```
 
 Local builds use `localhost/kobuild:<target>` tags. The build script prefers Docker when installed. Set `CONTAINER_ENGINE=podman` to select Podman. Builds use two compiler jobs by default. Set `JOBS` to change it.
+
+Use `nickel-qt5` and `nickel-qt6` for new builds and image references. The old names `qt5` and `qt6` are compatibility aliases planned for future deprecation. Local builds and published releases tag the same images under both names.
 
 ## Kobo
 
@@ -21,13 +23,13 @@ Linux AMD64 and ARM64 hosts both produce ARM32 Kobo binaries. The Qt5 SDK check 
 To configure and compile a CMake project:
 
 ```sh
-docker run --rm -v "$PWD:/work" -w /work localhost/kobuild:qt6 \
-    sh -c 'cmake -S . -B build/qt6 -G Ninja && cmake --build build/qt6 --parallel 2'
+docker run --rm -v "$PWD:/work" -w /work localhost/kobuild:nickel-qt6 \
+    sh -c 'cmake -S . -B build/nickel-qt6 -G Ninja && cmake --build build/nickel-qt6 --parallel 2'
 ```
 
 ## Releases
 
-GitHub Actions builds SDKs whose recipe folders changed. Tagged releases compare against the last successful release. Each SDK publishes after its own checks pass. A release such as `v1.0.0` names every SDK, for example `ghcr.io/nicoverbruggen/kobuild:qt6-v1.0.0`. Unchanged SDKs keep their previous image digest. Stable releases also update aliases such as `qt6`. Prereleases publish versioned tags only.
+GitHub Actions builds SDKs whose recipe folders changed. Tagged releases compare against the last successful release. Each SDK publishes after its own checks pass. A release such as `v1.0.0` names every SDK, for example `ghcr.io/nicoverbruggen/kobuild:nickel-qt6-v1.0.0`. Unchanged SDKs keep their previous image digest. Stable releases also update aliases such as `nickel-qt6`. Prereleases publish versioned tags only.
 
 Use the manual target selector to rebuild an SDK, including after changes to shared files outside the recipe folders. Select a release tag to publish that rebuild. Publishing uses `GITHUB_TOKEN` with package write access.
 
@@ -90,6 +92,6 @@ docker run --rm --platform linux/amd64 --entrypoint tar "$SDK_IMAGE" \
 
 ## Sources and licenses
 
-The Qt6 image includes its prepared Qt source and build scripts in `/usr/src/kobuild/qt6-source.tar.xz`. The Android image includes its matching Qt Base and Qt Sensors source archives in `/usr/src/kobuild/android/`. The exact source revisions of some components inherited from NickelTC in the Qt5 image remain unverified.
+The Qt6 image includes its prepared Qt source and build scripts in `/usr/src/kobuild/nickel-qt6-source.tar.xz`. The Android image includes its matching Qt Base and Qt Sensors source archives in `/usr/src/kobuild/android/`. The exact source revisions of some components inherited from NickelTC in the Qt5 image remain unverified.
 
-Scripts use [MIT](LICENSE). See [NOTICE](NOTICE) and [Qt patch notices](qt6/source/NOTICE) for third-party terms and sources.
+Scripts use [MIT](LICENSE). See [NOTICE](NOTICE) and [Qt patch notices](nickel-qt6/source/NOTICE) for third-party terms and sources.

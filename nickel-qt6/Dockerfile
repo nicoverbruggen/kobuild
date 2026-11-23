@@ -64,11 +64,11 @@ ARG JOBS=2
 
 # Verify the upstream archive checksum and apply the firmware patches before
 # either Qt build. A failed download or patch leaves no reusable source tree.
-COPY qt6/source /tc/source
+COPY nickel-qt6/source /tc/source
 RUN python3 /tc/source/prepare.py /tc/src/qtbase
 
-COPY qt6/wrappers.sh qt6/kobo.cmake qt6/build-qt.sh /tc/src/
-COPY qt6/mkspecs /tc/src/mkspecs
+COPY nickel-qt6/wrappers.sh nickel-qt6/kobo.cmake nickel-qt6/build-qt.sh /tc/src/
+COPY nickel-qt6/mkspecs /tc/src/mkspecs
 COPY LICENSE /tc/src/LICENSE.kobuild
 # Keep the exact prepared Qt source, notices and build scripts with the SDK.
 # Archive before configuration so generated build trees are not included.
@@ -87,8 +87,8 @@ RUN JOBS="$JOBS" /tc/src/build-qt.sh /tc/arm-kobo-linux-gnueabihf /tc/src
 
 # Keep module changes after Qt Base so they reuse its cached build layer.
 FROM build AS modules
-COPY qt6/sensors.json /tc/source/sensors.json
-COPY qt6/build-sensors.sh /tc/src/build-sensors.sh
+COPY nickel-qt6/sensors.json /tc/source/sensors.json
+COPY nickel-qt6/build-sensors.sh /tc/src/build-sensors.sh
 RUN JOBS="$JOBS" bash /tc/src/build-sensors.sh /tc/arm-kobo-linux-gnueabihf /tc/source/sensors.json
 
 # Keep the installed SDK, Qt source archive and cross-library packages.
@@ -101,7 +101,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends qemu-user && rm
 COPY --from=modules /tc/arm-kobo-linux-gnueabihf /tc/arm-kobo-linux-gnueabihf
 COPY --from=build /tc/qt6-source.tar.xz /usr/src/kobuild/qt6-source.tar.xz
 COPY --from=modules /usr/src/kobuild/qt6-sensors-source.tar.xz /usr/src/kobuild/qt6-sensors-source.tar.xz
-COPY qt6/check.sh /tc/arm-kobo-linux-gnueabihf/check.sh
+COPY nickel-qt6/check.sh /tc/arm-kobo-linux-gnueabihf/check.sh
 # CMake 3.21 and later read CMAKE_TOOLCHAIN_FILE from the environment, so a
 # plain cmake call cross-compiles here.
 ENV PATH=/tc/arm-kobo-linux-gnueabihf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
@@ -114,9 +114,9 @@ ENV PATH=/tc/arm-kobo-linux-gnueabihf/bin:/usr/local/sbin:/usr/local/bin:/usr/sb
 # in Nickel or establish compatibility with untested firmware versions.
 RUN /tc/arm-kobo-linux-gnueabihf/check.sh && rm -rf /tmp/*
 COPY LICENSE NOTICE /usr/share/doc/kobuild/
-COPY qt6/source/NOTICE /usr/share/doc/kobuild/qt6-patches-NOTICE
-COPY qt6/source/LICENSES /usr/share/doc/kobuild/qt-licenses
+COPY nickel-qt6/source/NOTICE /usr/share/doc/kobuild/qt6-patches-NOTICE
+COPY nickel-qt6/source/LICENSES /usr/share/doc/kobuild/qt-licenses
 COPY tools/check-sdk.py /usr/local/bin/kobuild-check
-ENV KOBUILD_TARGET=qt6
+ENV KOBUILD_TARGET=nickel-qt6
 WORKDIR /work
 CMD ["/bin/bash"]
