@@ -2,7 +2,7 @@
 set -eu
 cd "$(dirname "$0")"
 target=${1:-qt6}
-case "$target" in qt5|qt6|android|linux) ;; *) echo 'Usage: ./build.sh [qt5|qt6|android|linux]' >&2; exit 2;; esac
+case "$target" in qt5|qt6|android|linux|kindle) ;; *) echo 'Usage: ./build.sh [qt5|qt6|android|linux|kindle]' >&2; exit 2;; esac
 jobs=${JOBS:-2}
 case "$jobs" in ''|*[!0-9]*|0) echo 'JOBS must be a positive integer' >&2; exit 2;; esac
 engine=${CONTAINER_ENGINE:-}
@@ -13,7 +13,7 @@ if [ -z "$engine" ]; then
 fi
 recipe="$target/Dockerfile"
 runtime=python3
-[ "$target" != linux ] || runtime=bash
+case "$target" in linux|kindle) runtime=bash ;; esac
 set --
 if [ "$target" = android ]; then
     arch=${ANDROID_HOST_ARCH:-$(uname -m)}
@@ -23,6 +23,8 @@ if [ "$target" = android ]; then
         *) echo 'ANDROID_HOST_ARCH must be amd64 or arm64' >&2; exit 2 ;;
     esac
     set -- --platform "linux/$arch"
+elif [ "$target" = kindle ]; then
+    set -- --platform linux/amd64
 fi
 "$engine" build "$@" --build-arg "JOBS=$jobs" -f "$recipe" -t "localhost/kobuild:$target" .
 "$engine" run "$@" --rm --network none "localhost/kobuild:$target" "$runtime" /usr/local/bin/kobuild-check

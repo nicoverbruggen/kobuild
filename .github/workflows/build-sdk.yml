@@ -18,12 +18,12 @@ jobs:
       max-parallel: 2
       matrix:
         target: ['${{ inputs.target }}']
-        host:
-          - {arch: amd64, runner: ubuntu-latest}
-          - {arch: arm64, runner: ubuntu-24.04-arm}
+        host: ${{ fromJSON(inputs.target == 'kindle'
+          && '[{"arch":"amd64","runner":"ubuntu-latest"}]'
+          || '[{"arch":"amd64","runner":"ubuntu-latest"},{"arch":"arm64","runner":"ubuntu-24.04-arm"}]') }}
     runs-on: ${{ matrix.host.runner }}
     env:
-      CHECK_RUNTIME: ${{ (inputs.target == 'linux' || (inputs.target == 'android' && matrix.host.arch == 'arm64')) && 'bash' || 'python3' }}
+      CHECK_RUNTIME: ${{ (inputs.target == 'linux' || inputs.target == 'kindle' || (inputs.target == 'android' && matrix.host.arch == 'arm64')) && 'bash' || 'python3' }}
     timeout-minutes: 180
     permissions:
       contents: read
@@ -127,6 +127,7 @@ jobs:
           tags=(--tag "$image:$TARGET-$RELEASE_TAG")
           if [[ "$RELEASE_TAG" != *-* ]]; then tags+=(--tag "$image:$TARGET"); fi
           refs=()
-          arches=(amd64 arm64)
+          arches=(amd64)
+          if [[ "$TARGET" != kindle ]]; then arches+=(arm64); fi
           for arch in "${arches[@]}"; do refs+=("$(cat "digests/$TARGET-$arch.txt")"); done
           docker buildx imagetools create "${tags[@]}" "${refs[@]}"

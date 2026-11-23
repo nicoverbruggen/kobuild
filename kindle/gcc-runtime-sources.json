@@ -1,0 +1,21 @@
+{
+  "gcc_version": "14.4.0",
+  "compiler_archive_sha256": "8cc7dfbd71abd78f9e947d6b2e20670288a4402edc7b07176bca791f7eaf87d0",
+  "archives": [
+    {
+      "name": "gcc-14.4.0.tar.xz",
+      "url": "https://gcc.gnu.org/pub/gcc/releases/gcc-14.4.0/gcc-14.4.0.tar.xz",
+      "sha256": "752b6f567beac83159c77a7680b1316bdd784738bff9a9d070112c09da90f6d9"
+    },
+    {
+      "name": "koxtoolchain-2026.08.tar.gz",
+      "url": "https://codeload.github.com/koreader/koxtoolchain/tar.gz/refs/tags/2026.08",
+      "sha256": "e18b5ad1f41e34e9d2a3091dd6de08f514b1b9a716dc2edba57afacd91a18e98"
+    },
+    {
+      "name": "crosstool-ng-34844bc8e985ad1ba26b072a5b58264967072e19.tar.gz",
+      "url": "https://codeload.github.com/benoit-pierre/crosstool-ng/tar.gz/34844bc8e985ad1ba26b072a5b58264967072e19",
+      "sha256": "c31be19f5d8e327dc7ddbb2e95be03855b6499bebbd9ce56058f7815a7b0798c"
+    }
+  ]
+}

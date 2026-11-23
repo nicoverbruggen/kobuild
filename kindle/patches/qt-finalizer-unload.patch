@@ -1,0 +1,13 @@
+--- a/src/corelib/plugin/qlibrary.cpp
++++ b/src/corelib/plugin/qlibrary.cpp
+@@ -352,6 +352,10 @@
+                 // lingering references (in system threads e.g.) to Objective-C classes
+                 // defined in the library.
+                 lib->unload(QLibraryPrivate::NoUnloadSys);
++#elif defined(__GLIBC__) && __GLIBC__ == 2 && __GLIBC_MINOR__ < 25
++                // Old glibc can assert when a NODELETE library is closed after
++                // its finalizer has run. Explicit unload calls remain unchanged.
++                lib->unload(QLibraryPrivate::NoUnloadSys);
+ #else
+                 lib->unload();
+ #endif

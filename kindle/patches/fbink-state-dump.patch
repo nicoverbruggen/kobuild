@@ -1,0 +1,10 @@
+--- a/fbink.c
++++ b/fbink.c
+@@ -5915,6 +5915,7 @@
+ 	    sunxiCtx.force_rota,
+ #else
+ 	    false,
++	    false,
+ 	    FORCE_ROTA_NOTSUP,
+ #endif
+ 	    deviceQuirks.isKindleLegacy,

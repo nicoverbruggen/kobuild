@@ -1,17 +1,22 @@
 # kobuild
 
-SDK containers for Kobo, Android and the Linux desktop. Qt5 targets Kobo firmware 4.x; Qt6 targets firmware 5.x/6.x. Android builds standalone ARM64 APKs. Linux builds and tests desktop clients. Application dependencies and patches stay in the application repository.
+Kobalt build tooling. This repository builds SDK images for Kobo, Kindle, Android and the Linux desktop. The Qt5 and Qt6 SDKs target Kobo firmware 4.x and 5.x/6.x, respectively. The Android SDK builds standalone ARM64 APKs. The Linux SDK builds and tests desktop clients. Application dependencies and patches stay in the application repository.
+
+## Build locally
 
 ```sh
 ./build.sh qt5
 ./build.sh qt6
 ./build.sh android
 ./build.sh linux
+./build.sh kindle
 ```
 
-Images are tagged `localhost/kobuild:qt5`, `localhost/kobuild:qt6`, `localhost/kobuild:android` and `localhost/kobuild:linux`. Docker is used when installed; set `CONTAINER_ENGINE=podman` to select Podman. Builds use two compiler jobs by default; set `JOBS` to change it. Linux AMD64 and ARM64 hosts both produce ARM32 Kobo binaries. Android builds select the native host architecture. Set `ANDROID_HOST_ARCH=amd64` or `ANDROID_HOST_ARCH=arm64` to select it explicitly, including when using a remote container engine. Emulation is required only when selecting another host architecture.
+Local builds use `localhost/kobuild:<target>` tags. The build script prefers Docker when installed. Set `CONTAINER_ENGINE=podman` to select Podman. Builds use two compiler jobs by default. Set `JOBS` to change it.
 
-The Qt5 compilers search only the NickelTC sysroot's glibc 2.19 headers, the glibc of firmware 4.x. They do not search Ubuntu's glibc 2.35 cross headers, so code that needs a newer glibc fails to compile. The SDK check verifies this.
+## Kobo
+
+Linux AMD64 and ARM64 hosts both produce ARM32 Kobo binaries. The Qt5 SDK check verifies that the compiler uses the NickelTC sysroot's glibc 2.19 headers, which match Kobo firmware 4.x.
 
 To configure and compile a CMake project:
 
@@ -20,11 +25,17 @@ docker run --rm -v "$PWD:/work" -w /work localhost/kobuild:qt6 \
     sh -c 'cmake -S . -B build/qt6 -G Ninja && cmake --build build/qt6 --parallel 2'
 ```
 
-GitHub Actions builds SDKs whose platform folders changed. Releases compare against the last successful release, so a cancelled release does not hide pending changes. Each SDK publishes independently after its own checks pass. A tag such as `v1.0.0` publishes `ghcr.io/<owner>/<repo>:qt6-v1.0.0` when Qt6 changed. An SDK that did not change gets the same release tag on its current image, with the same digest and no rebuild, so every release names `qt5-`, `qt6-`, `android-` and `linux-` images and consumers can pin all of them from one tag. Stable releases also update the selected SDK's alias. Beta tags publish versioned images only. Use the manual workflow's target selector for an explicit rebuild, including changes to shared files outside the platform folders. Select a release tag to publish that rebuild. Publishing uses `GITHUB_TOKEN` with package write access.
+## Releases
+
+GitHub Actions builds SDKs whose recipe folders changed. Tagged releases compare against the last successful release. Each SDK publishes after its own checks pass. A release such as `v1.0.0` names every SDK, for example `ghcr.io/nicoverbruggen/kobuild:qt6-v1.0.0`. Unchanged SDKs keep their previous image digest. Stable releases also update aliases such as `qt6`. Prereleases publish versioned tags only.
+
+Use the manual target selector to rebuild an SDK, including after changes to shared files outside the recipe folders. Select a release tag to publish that rebuild. Publishing uses `GITHUB_TOKEN` with package write access.
 
 ## Android
 
 The image includes Qt 6.11.3 Core, Gui, Widgets, Network and Sensors, matching Linux Qt host tools, JDK 21, Android API 36 and NDK 27.2.12479018. Both host architectures target Android 9 and later with the `arm64-v8a` ABI. There is no emulator or x86_64 Android target kit.
+
+Local builds select the native host architecture by default. Set `ANDROID_HOST_ARCH=amd64` or `ANDROID_HOST_ARCH=arm64` to select it explicitly, including when using a remote container engine. A non-native host image needs emulation.
 
 AMD64 uses Google's NDK and build-tools 36.0.0. ARM64 uses the checksum-pinned [NDK](https://github.com/HomuHomu833/android-ndk-custom) and [SDK](https://github.com/HomuHomu833/android-sdk-custom) community rebuilds recorded in `android/arm64/manifest.json`, with build-tools 36.1.0. The compiler reports LLVM base `r522817c`; its source revision is recorded in that manifest. These are rebuilt host tools, not official Google ARM64 Linux downloads. Qt host and Android libraries use official Qt binary archives; application builds never compile Qt.
 
@@ -49,8 +60,6 @@ The SDK check starts the bundled Gradle through Qt's wrapper with a fresh cache,
 
 CI builds Android on native AMD64 and ARM64 runners and publishes both into the same `android` and versioned `android-vVERSION` tags after both checks pass. Docker selects the matching host image when pulling. The image host architecture is separate from the Android `arm64-v8a` target ABI.
 
-The Qt6 image includes its prepared Qt source and build scripts in `/usr/src/kobuild/qt6-source.tar.xz`. The Android image includes its matching Qt Base and Qt Sensors source archives in `/usr/src/kobuild/android/`. These cover Qt, not all system packages. Exact source provenance for all components inherited from NickelTC in the Qt5 image remains unverified.
-
 ## Linux
 
 The image includes Qt 6.11.3 for the Linux desktop with Core, Gui, Widgets, Network, Sql, Test, the private Gui headers and Qt's bundled libpng, plus GCC, CMake, Ninja and the OpenGL, EGL, xkbcommon and fontconfig development packages that Qt's CMake packages require. It does not include Qt Sensors. AMD64 and ARM64 hosts use the same recipe, `linux/Dockerfile`, and install the official Qt binary archives of their own architecture, the same ones the Android image uses as its host Qt. `linux/manifest.json` records them with SHA-256 checksums; the installer checks every archive before extraction. Qt is installed at `/opt/Qt/6.11.3/linux` on both hosts, and the image sets `QT_PATH` and `CMAKE_PREFIX_PATH` to it, so `find_package(Qt6)` needs no options.
@@ -61,5 +70,26 @@ docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD:/work" -w /work
 ```
 
 The SDK check builds, links and runs a Qt Widgets program headless with the offscreen platform. It checks simulated input, SQLite, resources and libpng, and the checksums of the Qt source archive in `/usr/src/kobuild/linux/`. The installer and check use Bash, jq and CMake, without Python.
+
+## Kindle
+
+The `kindle` target matches Kobalt's `kindle` CMake preset. It uses KOReader's `arm-kindlehf-linux-gnueabihf` toolchain and targets ARMv7 hard float with glibc 2.20. The SDK image runs on Linux AMD64. ARM64 build hosts need AMD64 container emulation.
+
+The SDK includes Qt 6.8.3 in `/sdk/qt`, matching Qt host tools in `/sdk/qt-host`, OpenSSL in `/sdk/openssl`, zlib in `/sdk/runtime` and FBInk in `/sdk/fbink`. The SDK check builds and links a Qt program, checks the Qt plugins, and verifies the ARM ABI and glibc symbol versions.
+
+For shared builds, use a published `ghcr.io/nicoverbruggen/kobuild:kindle-vVERSION` image and pin its digest. `./build.sh kindle` builds the local test image.
+
+The GCC 14.4.0 runtime libraries (`libstdc++.so.6`, `libgcc_s.so.1` and `libatomic.so.1`) come from the [KOReader toolchain release](https://github.com/koreader/koxtoolchain/releases/tag/2026.08) pinned in `kindle/manifest.json`. The SDK includes GNU GCC sources, the KOReader build recipe, the exact crosstool-NG revision with its GCC patches, the embedded build configuration, and the GPL and GCC Runtime Library Exception texts. `kindle/gcc-runtime-sources.json` pins these source archives and binds them to the compiler archive checksum. The remaining Kindle recipe inputs and patches are in `/usr/src/kobuild/kindle`.
+
+To export the GCC runtime source bundle, set `SDK_IMAGE` to the SDK image that supplied the libraries and run:
+
+```sh
+docker run --rm --platform linux/amd64 --entrypoint tar "$SDK_IMAGE" \
+    -C /usr/src/kobuild/kindle -cf - gcc-runtime > kindle-gcc-runtime-sources.tar
+```
+
+## Sources and licenses
+
+The Qt6 image includes its prepared Qt source and build scripts in `/usr/src/kobuild/qt6-source.tar.xz`. The Android image includes its matching Qt Base and Qt Sensors source archives in `/usr/src/kobuild/android/`. The exact source revisions of some components inherited from NickelTC in the Qt5 image remain unverified.
 
 Scripts use [MIT](LICENSE). See [NOTICE](NOTICE) and [Qt patch notices](qt6/source/NOTICE) for third-party terms and sources.

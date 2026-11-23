@@ -11,7 +11,7 @@ on:
         description: SDK to build (select a release tag to publish)
         type: choice
         # Keep this menu in sync with .github/sdk-targets.json.
-        options: [all, qt5, qt6, android, linux]
+        options: [all, qt5, qt6, android, linux, kindle]
         default: all
 
 permissions:

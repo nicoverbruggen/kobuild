@@ -47,6 +47,13 @@ Linux ARM64 packages. Their bundled licenses and notices remain under
 /usr/share/doc/kobuild/android-arm64-manifest.json. It identifies the binary
 inputs and source references, not a complete corresponding-source archive.
 
+Kindle uses KOReader's kindlehf toolchain from the release pinned in
+kindle/manifest.json. The image includes the GCC 14.4.0 source, the KOReader
+build recipe, its pinned crosstool-NG source and patches, the embedded toolchain
+configuration and the license texts in /usr/src/kobuild/kindle/gcc-runtime.
+The GCC runtime libraries use GPLv3 with the GCC Runtime Library Exception.
+Other Kindle source archives and recipe patches are under /usr/src/kobuild/kindle.
+
 Qt license texts are included in /usr/share/doc/kobuild/qt-licenses inside all
 images. Ubuntu package notices remain in /usr/share/doc. The Qt6 source archive
 does not contain the sources for Ubuntu packages or the cross compiler. This

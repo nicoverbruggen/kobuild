@@ -1,0 +1,15 @@
+{
+  "qt_version": "6.8.3",
+  "target": "arm-kindlehf-linux-gnueabihf",
+  "host": "amd64",
+  "glibc_maximum": "2.20",
+  "archives": [
+    {"name":"kindlehf.tar.zst","url":"https://github.com/koreader/koxtoolchain/releases/download/2026.08/kindlehf.tar.zst","sha256":"8cc7dfbd71abd78f9e947d6b2e20670288a4402edc7b07176bca791f7eaf87d0","kind":"compiler"},
+    {"name":"qtbase-everywhere-src-6.8.3.tar.xz","url":"https://download.qt.io/archive/qt/6.8/6.8.3/submodules/qtbase-everywhere-src-6.8.3.tar.xz","sha256":"56001b905601bb9023d399f3ba780d7fa940f3e4861e496a7c490331f49e0b80","kind":"source"},
+    {"name":"qtsensors-everywhere-src-6.8.3.tar.xz","url":"https://download.qt.io/archive/qt/6.8/6.8.3/submodules/qtsensors-everywhere-src-6.8.3.tar.xz","sha256":"b871a7501f9fa609f35260ea39a0f198427d6d6b9ee8d1a6ddb987cc26511eae","kind":"source"},
+    {"name":"fbink-886f25f.tar.gz","url":"https://github.com/NiLuJe/FBInk/archive/886f25f13368859ad8a899b88d04c26e19cda32e.tar.gz","sha256":"f71a30bf27ad25e40da24bed54e4148a68a7b79ff68b81b7a9f0054b1d65a6e9","kind":"source"},
+    {"name":"stb-dfa32fac.tar.gz","url":"https://github.com/NiLuJe/stb/archive/dfa32facac4a16184dd66f8e482bf15a678f2bf3.tar.gz","sha256":"1f0869b730489da3c19311cf2c133cb35309319cabb07c8907cb74795116df93","kind":"source"},
+    {"name":"zlib-1.3.1.tar.gz","url":"https://zlib.net/fossils/zlib-1.3.1.tar.gz","sha256":"9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23","kind":"source"},
+    {"name":"openssl-3.5.9.tar.gz","url":"https://codeload.github.com/openssl/openssl/tar.gz/refs/tags/openssl-3.5.9","sha256":"796831ec533bf41998eaaee9d632d921b8a69f57394fa4086ff01a941113d26d","kind":"source"}
+  ]
+}
